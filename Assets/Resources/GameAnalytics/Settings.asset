@@ -26,11 +26,11 @@ MonoBehaviour:
   UserMessagesFailed: 0
   CustomArea: 
   gameKey:
-  - ba74e06df329ed09b89564716cd18748
+  - 9542d1f215f1e161a9193d2577b1863e
   secretKey:
-  - 90ad710f67ce937ba1fdff42307dfede947e7567
+  - 11d790be743b3cb381a4285a0af8dd518488f47c
   Build:
-  - 1.3.9
+  - 1.0
   SelectedPlatformOrganization:
   - 
   SelectedPlatformStudio:
@@ -62,7 +62,7 @@ MonoBehaviour:
   ResourceItemTypes: []
   ResourceCurrencies: []
   LastCreatedGamePlatform: 0
-  Platforms: 0b000000
+  Platforms: 08000000
   CurrentInspectorState: 1
   ClosedHints: 
   DisplayHints: 0

@@ -1,41 +1,48 @@
 using UnityEngine;
 using UnityEngine.UI;
-using DG.Tweening;
 using UnityEngine.SceneManagement;
 
 public class SplashScript : MonoBehaviour
 {
+    public static SplashScript instance;
+ 
     [SerializeField]
-    private float displayTime = 2.5f;
+    float displayTime = 2.5f;
 
     [SerializeField]
-    private Image loadingBar;
+    Image loadingBar;
 
     [Space()]
     [Space()]
-    public Animator  pencil;
+    public Animator pencil;
 
     [Space()]
     [SerializeField]
-    private GameObject InterNetPopUp;
+    GameObject InterNetPopUp;
 
-    private bool isInternet = false;
+    bool isInternet = false;
+
+    [Space()]
+    public GameObject UmpManager;
 
     void Awake()
     {
-        try
-        {
-            if (SystemInfo.systemMemorySize <= 1024)
-            {
-                PlayerPrefs.SetInt("NoAds", 1);
-                Application.Quit();
-            }
-            else if (SystemInfo.systemMemorySize <= 2048)
-            {
-                PlayerPrefs.SetInt("MaxAdStop", 1);
-            }
-        }
-        catch { }
+        instance = this;
+
+    //    try
+    //    {
+    //        if (SystemInfo.systemMemorySize <= 1024)
+    //        {
+    //            PlayerPrefs.SetInt("NoAds", 1);
+    //            Application.Quit();
+    //        }
+    //        else if (SystemInfo.systemMemorySize <= 2048)
+    //        {
+    //            PlayerPrefs.SetInt("MaxAdStop", 1);
+    //        }
+    //    }
+    //    catch { }
+
     }
 
     void Start()
@@ -46,6 +53,7 @@ public class SplashScript : MonoBehaviour
         PlayerPrefs.SetInt("ShowGalleryPanel", 0);
 
         CheckInternetStatus();
+
         InvokeRepeating(nameof(CheckInternetStatus), 0f, 5f);
     }
 
@@ -54,15 +62,19 @@ public class SplashScript : MonoBehaviour
         if (Application.internetReachability == NetworkReachability.NotReachable)
         {
             InterNetPopUp.SetActive(true);
+
             if (AudioManager.instance != null)
             {
                 AudioManager.instance.StopMusic();
             }
         }
+
         else
         {
             InterNetPopUp.SetActive(false);
+
             AudioManager.instance.PlayBgSound_1();
+
             SceneLoad();
         }
 
@@ -73,26 +85,25 @@ public class SplashScript : MonoBehaviour
         if (Application.internetReachability == NetworkReachability.NotReachable)
         {
             InterNetPopUp.SetActive(true);
+
             if (AudioManager.instance != null)
             {
                 AudioManager.instance.StopMusic();
             }
         }
+
         else
         {
             InterNetPopUp.SetActive(false);
+
             AudioManager.instance.PlayBgSound_1();
+
             SceneLoad();
         }
     }
 
     void SceneLoad()
     {
-        //loadingBar.DOFillAmount(1, displayTime).OnComplete(() =>
-        //{
-        //    SceneManager.LoadScene(1);
-        //});
-
         pencil.Play("PencilFilling");
 
         Invoke(nameof(loadit), displayTime);

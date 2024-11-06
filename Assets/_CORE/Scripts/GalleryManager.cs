@@ -92,11 +92,9 @@ public class GalleryManager : MonoBehaviour
             {
             }
 
-            AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "GalleryLevel", $"Level_{index + 1}", "Start");
-
-
-
+            //AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "GalleryLevel", $"Level_{index + 1}", "Start");
         }
+
         else
         {
             Debug.Log("___Index out of range: " + index);
@@ -146,7 +144,7 @@ public class GalleryManager : MonoBehaviour
         {
         }
         
-        AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "GalleryLevel" , $"Level_{GameManager.selectedGalleryIndex + 1}", "Complete");
+        //AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "GalleryLevel" , $"Level_{GameManager.selectedGalleryIndex + 1}", "Complete");
 
 
         if (GameManager.selectedGalleryIndex == 0)

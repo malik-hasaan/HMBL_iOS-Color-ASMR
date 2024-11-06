@@ -1,10 +1,6 @@
-﻿
-//using ByteBrewSDK;
-using com.adjust.sdk;
-using GoogleMobileAds.Api;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
+using com.adjust.sdk;
 
 public class AdsManager : MonoBehaviour
 {
@@ -14,7 +10,8 @@ public class AdsManager : MonoBehaviour
     [SerializeField] private string maxSdkKey = "";
 
 #if UNITY_IPHONE || UNITY_IOS
-    //[SerializeField] string BannerAdUnitId_IOS = "";
+    [SerializeField] string BannerAdUnitId_IOS = "";
+    [SerializeField] string MRecAdUnitId = "";
     [SerializeField] string InterstitialAdUnitId_IOS = "";
     [SerializeField] string RewardedAdUnitId_IOS = "";
     [Space(50)]
@@ -30,6 +27,8 @@ public class AdsManager : MonoBehaviour
     [SerializeField]
     MaxSdkBase.BannerPosition bannerPosition;
 
+    public static string BannerAdUnitId = "";
+    public static string mrecAdUnitId = "";
     public static string InterstitialAdUnitId = "";
     public static string RewardedAdUnitId = "";
 
@@ -90,7 +89,7 @@ public class AdsManager : MonoBehaviour
         BannerAdUnitId = BannerAdUnitId_IOS;
         InterstitialAdUnitId = InterstitialAdUnitId_IOS;
         RewardedAdUnitId = RewardedAdUnitId_IOS;
-        mrecAdUnitId = MRecAdUnitId_IOS;
+        mrecAdUnitId = MRecAdUnitId;
 #else
         //BannerAdUnitId = BannerAdUnitId_Android;
         InterstitialAdUnitId = InterstitialAdUnitId_Android;
@@ -555,21 +554,22 @@ public class AdsManager : MonoBehaviour
 
     #endregion
 
-    private void AdRevenuePaidEvent(string adUnitId, MaxSdkBase.AdInfo impressionData)
+    void AdRevenuePaidEvent(string adUnitId, MaxSdkBase.AdInfo impressionData)
     {
         try
         {
             double revenue = impressionData.Revenue;
-            var impressionParameters = new[] {
-        new Firebase.Analytics.Parameter("ad_platform", "AppLovin"),
-        new Firebase.Analytics.Parameter("ad_source", impressionData.NetworkName),
-        new Firebase.Analytics.Parameter("ad_unit_name", impressionData.AdUnitIdentifier),
-        new Firebase.Analytics.Parameter("ad_format", impressionData.AdFormat),
-        new Firebase.Analytics.Parameter("value", revenue),
-        new Firebase.Analytics.Parameter("currency", "USD"), // All AppLovin revenue is sent in USD
+            var impressionParameters = new[]
+            {
+         new Firebase.Analytics.Parameter("ad_platform", "AppLovin"),
+         new Firebase.Analytics.Parameter("ad_source", impressionData.NetworkName),
+         new Firebase.Analytics.Parameter("ad_unit_name", impressionData.AdUnitIdentifier),
+         new Firebase.Analytics.Parameter("ad_format", impressionData.AdFormat),
+         new Firebase.Analytics.Parameter("value", revenue),
+         new Firebase.Analytics.Parameter("currency", "USD"), // All AppLovin revenue is sent in USD
         };
-            Firebase.Analytics.FirebaseAnalytics.LogEvent("ad_impression", impressionParameters);
 
+            Firebase.Analytics.FirebaseAnalytics.LogEvent("ad_impression", impressionParameters);
 
             //Rev Event For Adjust
             AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue(AdjustConfig.AdjustAdRevenueSourceAppLovinMAX);
@@ -582,19 +582,22 @@ public class AdsManager : MonoBehaviour
     }
 
     //Appmetric Revenue Events
-    private void OnBannerAdRevenuePaidEventAppmetrica(string adUnitId, MaxSdkBase.AdInfo impressionData)
+    void OnBannerAdRevenuePaidEventAppmetrica(string adUnitId, MaxSdkBase.AdInfo impressionData)
     {
         //AppmetricaAnalytics.ReportRevenue_Applovin(impressionData, AppmetricaAnalytics.AdFormat.Banner, "");
     }
-    private void OnInterAdRevenuePaidEventAppmetrica(string adUnitId, MaxSdkBase.AdInfo impressionData)
+
+    void OnInterAdRevenuePaidEventAppmetrica(string adUnitId, MaxSdkBase.AdInfo impressionData)
     {
         //AppmetricaAnalytics.ReportRevenue_Applovin(impressionData, AppmetricaAnalytics.AdFormat.Interstitial, "");
     }
-    private void OnRewardAdRevenuePaidEventAppmetrica(string adUnitId, MaxSdkBase.AdInfo impressionData)
+
+    void OnRewardAdRevenuePaidEventAppmetrica(string adUnitId, MaxSdkBase.AdInfo impressionData)
     {
         //AppmetricaAnalytics.ReportRevenue_Applovin(impressionData, AppmetricaAnalytics.AdFormat.Rewarded, "");
     }
-    private void OnMrecAdRevenuePaidEventAppmetrica(string adUnitId, MaxSdkBase.AdInfo impressionData)
+
+    void OnMrecAdRevenuePaidEventAppmetrica(string adUnitId, MaxSdkBase.AdInfo impressionData)
     {
         //AppmetricaAnalytics.ReportRevenue_Applovin(impressionData, AppmetricaAnalytics.AdFormat.MREC, "");
     }

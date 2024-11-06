@@ -186,13 +186,6 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(3f);
 
-        try
-        {
-            GadsmeAdsManager.intance.ShowGadsMeAd();
-        }
-
-        catch { }
-
         if (PlayerPrefs.GetInt("ButtonEnabled") == 0)
         {
             StartCoroutine(enableButton());
@@ -284,7 +277,7 @@ public class GameManager : MonoBehaviour
         }
         catch { }
 
-        AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "DrawingLevel", $"Level_{currentlevel}", "Start");
+        //AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "DrawingLevel", $"Level_{currentlevel}", "Start");
     }
 
     int GetLevelAccordingToFirebaseOrder(int lvlNo)
@@ -457,7 +450,7 @@ public class GameManager : MonoBehaviour
         }
         catch { }
 
-        AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "DrawingLevel", $"Level_{currentlevel}", "Complete");
+        //AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "DrawingLevel", $"Level_{currentlevel}", "Complete");
 
         if (PlayerPrefs.GetInt("CanPlayMusic", 1) == 1)
         {
@@ -468,13 +461,6 @@ public class GameManager : MonoBehaviour
 
             AudioSourceParticle.PlayOneShot(SoundClipParticle);
         }
-
-        try
-        {
-            GadsmeAdsManager.intance.HideGadsMeAd();
-        }
-
-        catch { }
     }
 
     public void OpenGalleryPanel()
@@ -587,13 +573,6 @@ public class GameManager : MonoBehaviour
 
         }
         catch { }
-
-        try
-        {
-            GadsmeAdsManager.intance.HideGadsMeAd();
-        }
-
-        catch { }
     }
 
     public void CloseGalleryPanel()
@@ -615,18 +594,13 @@ public class GameManager : MonoBehaviour
 
         }
         catch { }
+
         AdCaller._inst.callads();
+
         VibrateIt();
         Gallery_Panel.SetActive(false);
         gamePaused = false;
         AudioManagerButtons._inst.PlayMusicTap();
-
-        try
-        {
-            GadsmeAdsManager.intance.ShowGadsMeAd();
-        }
-
-        catch { }
     }
 
     public static int selectedGalleryIndex;
@@ -693,13 +667,6 @@ public class GameManager : MonoBehaviour
             canPaint = false;
         }
         catch { }
-
-        try
-        {
-            GadsmeAdsManager.intance.HideGadsMeAd();
-        }
-
-        catch { }
     }
 
     public void CloseSettings()
@@ -727,13 +694,6 @@ public class GameManager : MonoBehaviour
             PDN.is_dragable = true;
             canPaint = true;
         }
-        catch { }
-
-        try
-        {
-            GadsmeAdsManager.intance.ShowGadsMeAd();
-        }
-
         catch { }
     }
 

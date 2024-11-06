@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a187246822bbb47529482707f3e0eff8, type: 3}
   m_Name: GoogleMobileAdsSettings
   m_EditorClassIdentifier: 
-  adMobAndroidAppId: ca-app-pub-9917171224118880~2426451152
-  adMobIOSAppId: 
+  adMobAndroidAppId: 
+  adMobIOSAppId: ca-app-pub-9917171224118880~5605456254
   delayAppMeasurementInit: 0
   enableKotlinXCoroutinesPackagingOption: 1
   optimizeInitialization: 1
   optimizeAdLoading: 1
-  userTrackingUsageDescription: 
+  userTrackingUsageDescription: This identifier will be used to deliver personalized
+    ads to you.
   validateGradleDependencies: 0

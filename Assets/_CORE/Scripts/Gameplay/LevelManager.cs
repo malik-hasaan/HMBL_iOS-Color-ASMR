@@ -435,7 +435,7 @@ public class LevelManager : MonoBehaviour
 
         Invoke(nameof(StartColoring), 1.1f);
 
-        AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "DrawingLevels_OutlineAndColor", $"Level_{GameManager.Instance.currentlevel + 1}", "Outline Complete");
+        //AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "DrawingLevels_OutlineAndColor", $"Level_{GameManager.Instance.currentlevel + 1}", "Outline Complete");
 
         if (ToolMoveOnSpline.instance.audioSource != null)
             ToolMoveOnSpline.instance.audioSource.Stop();
@@ -710,7 +710,7 @@ public class LevelManager : MonoBehaviour
 
         StartCoroutine(LevelComplete());
 
-        AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "DrawingLevels_OutlineAndColor", $"Level_{GameManager.Instance.currentlevel + 1}", "Color Complete");
+        //AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "DrawingLevels_OutlineAndColor", $"Level_{GameManager.Instance.currentlevel + 1}", "Color Complete");
 
         if (CameraZooming.instance != null)
             CameraZooming.instance.ZoomTo(CameraZooming.instance.defaultPosition, CameraZooming.instance.initialFOV);

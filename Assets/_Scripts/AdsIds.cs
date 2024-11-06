@@ -17,17 +17,17 @@ public class AdsIds : MonoBehaviour
 
     void Awake()
     {
-        if (SystemInfo.systemMemorySize <= 1024)
-        {
-            PlayerPrefs.SetInt("NoAds", 1);
+        //if (SystemInfo.systemMemorySize <= 1024)
+        //{
+        //    PlayerPrefs.SetInt("NoAds", 1);
 
-            PlayerPrefs.SetInt("AdsStop", 1);
-        }
+        //    PlayerPrefs.SetInt("AdsStop", 1);
+        //}
 
-        if (SystemInfo.systemMemorySize <= 2048)
-        {
-            PlayerPrefs.SetInt("MaxAdStop", 1);
-        }
+        //if (SystemInfo.systemMemorySize <= 2048)
+        //{
+        //    PlayerPrefs.SetInt("MaxAdStop", 1);
+        //}
 
         if (instance == null)
             instance = this;

@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   qualityServiceEnabled: 0
   sdkKey: oMVJJQ4SNHt3mD815NH3gODTBfB9LaAbCeJJUCG1msnnpGcit37bsM9251MzQnNVGa3SGfsPSiILf84147EBls
-  setAttributionReportEndpoint: 0
+  setAttributionReportEndpoint: 1
   addApsSkAdNetworkIds: 0
   customGradleVersionUrl: 
   customGradleToolsVersion: 
-  adMobAndroidAppId: ca-app-pub-9917171224118880~2426451152
-  adMobIosAppId: 
+  adMobAndroidAppId: 
+  adMobIosAppId: ca-app-pub-9917171224118880~5605456254

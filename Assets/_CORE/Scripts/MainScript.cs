@@ -277,14 +277,6 @@ public class MainScript : MonoBehaviour
         Sequence openSequence = DOTween.Sequence();
         openSequence.Append(scrollAnimCanvasGroup.DOFade(1, 0.9f));
         openSequence.Join(scrollAnim.DOLocalMove(scrollAnim2.localPosition, 0.9f).SetEase(Ease.OutQuad));
-
-
-        try
-        {
-            GadsmeAdsManager.intance.HideGadsMeAd();
-        }
-
-        catch { }
     }
 
     public void ClosePensPanel()
@@ -312,13 +304,6 @@ public class MainScript : MonoBehaviour
             GameManager.Instance.canPaint = true;
 
         }
-        catch { }
-
-        try
-        {
-            GadsmeAdsManager.intance.ShowGadsMeAd();
-        }
-
         catch { }
     }
 

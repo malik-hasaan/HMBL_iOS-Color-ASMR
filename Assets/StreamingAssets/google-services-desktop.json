@@ -1,26 +1,28 @@
 {
   "project_info": {
-    "project_number": "191904446683",
-    "project_id": "color-page-asmr-cc4bd",
-    "storage_bucket": "color-page-asmr-cc4bd.appspot.com"
+    "project_number": "74326492229",
+    "project_id": "colorup---relaxing-color-a4cf3",
+    "storage_bucket": "colorup---relaxing-color-a4cf3.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:191904446683:android:a7645c024e49dd6ae1f4fe",
+        "mobilesdk_app_id": "1:74326492229:ios:622e1ef1093d55297b8f2c",
         "android_client_info": {
-          "package_name": "com.sumraf.asmr.color.drawing"
+          "package_name": "com.hmbl.color.asmr.relax.coloring.drawing"
         }
       },
-      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyB4Jo9GoJJOV5CNDjmF-jMp02Y4B-f8_S0"
+          "current_key": "AIzaSyDHcpMQ_iMN4R1SrQbLm1UmWcHjKpfgZ-I"
         }
       ],
       "services": {
+        "analytics_service": {
+          "status": 0
+        },
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "status": 1
         }
       }
     }

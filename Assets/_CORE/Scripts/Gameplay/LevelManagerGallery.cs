@@ -326,7 +326,7 @@ public class LevelManagerGallery : MonoBehaviour
 
         Debug.Log("Colors Done");
 
-        AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "GalleryLevels_Color", $"Level_{GalleryManager.Instance.index + 1}", "Color Complete");
+        //AppmetricaAnalytics.ReportCustomEvent(AnalyticsType.GameData, "GalleryLevels_Color", $"Level_{GalleryManager.Instance.index + 1}", "Color Complete");
 
         if (CameraZooming.instance != null)
         {

@@ -13,9 +13,6 @@ public class RatingScript : MonoBehaviour
     [Space(20)]
     public GameObject RatingPanel;
 
-    [Space(20)]
-    public GameObject RatingManager;
-
     void Start()
     {
         UpdateStars(0);
@@ -71,13 +68,14 @@ public class RatingScript : MonoBehaviour
 
     private void OpenPlayStoreFallback()
     {
-        RatingManager.SetActive(true);
+        UnityEngine.iOS.Device.RequestStoreReview();
+
         //Application.OpenURL("https://play.google.com/store/apps/details?id=com.sumraf.asmr.color.drawing");
 
         StartCoroutine(offRatingPanel());
     }
 
-    private void AnimateStar(Image star)
+    void AnimateStar(Image star)
     {
         star.transform.DOKill();
         star.transform.DOBlendableLocalRotateBy(new Vector3(0, 0, 360), 0.8f, RotateMode.FastBeyond360)

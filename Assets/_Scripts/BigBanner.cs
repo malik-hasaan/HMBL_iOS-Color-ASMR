@@ -116,21 +116,25 @@ public class BigBanner : MonoBehaviour
 
     public void paidEvent(AdValue adValue)
     {
-        //ADJUST
+        ////ADJUST
+        UnityEngine.Debug.LogFormat("Received paid event. (currency: {0}, value: {1}",
+        adValue.CurrencyCode, adValue.Value);
 
         double revenue = adValue.Value / 1000000f;
-        AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue(AdjustConfig.AdjustAdRevenueSourceAdMob);
-        adjustAdRevenue.setRevenue(revenue, "USD");
-        Adjust.trackAdRevenue(adjustAdRevenue);
-
-        //FIREBASE
 
         var impressionParameters = new[] {
          new Firebase.Analytics.Parameter("ad_platform", "AdMob"),
+
          new Firebase.Analytics.Parameter("value", revenue),
          new Firebase.Analytics.Parameter("currency", "USD"), // All AppLovin revenue is sent in USD
          };
+
         Firebase.Analytics.FirebaseAnalytics.LogEvent("ad_impression", impressionParameters);
+        Firebase.Analytics.FirebaseAnalytics.LogEvent("paid_ad_impression", impressionParameters);
+
+        AdjustAdRevenue adjustAdRevenue = new AdjustAdRevenue(AdjustConfig.AdjustAdRevenueSourceAdMob);
+        adjustAdRevenue.setRevenue(revenue, "USD");
+        Adjust.trackAdRevenue(adjustAdRevenue);
     }
 
 
