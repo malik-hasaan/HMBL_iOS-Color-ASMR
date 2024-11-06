@@ -1,8 +1,9 @@
 fileFormatVersion: 2
-guid: bec75d90861e11f42b90f05c8ae08d3d
+guid: 0a15bbca911844b559f5726b908abdff
 labels:
 - al_max
 - al_max_export_path-MaxSdk/Mediation/Fyber
+- al_max_export_path-MaxSdk\Mediation\Fyber
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
