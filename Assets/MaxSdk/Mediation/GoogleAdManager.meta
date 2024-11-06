@@ -1,5 +1,8 @@
 fileFormatVersion: 2
-guid: 3dc051f6a676d4313bf09218963afab8
+guid: 2457e5f1ce033e748845a5c8180de220
+labels:
+- al_max
+- al_max_export_path-MaxSdk/Mediation/GoogleAdManager
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

@@ -1,5 +1,8 @@
 fileFormatVersion: 2
-guid: 348a250f7be234a5582aecb5daf8b786
+guid: d5f96ac0643c34f438a5f881210f4035
+labels:
+- al_max
+- al_max_export_path-MaxSdk/Mediation/Facebook
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

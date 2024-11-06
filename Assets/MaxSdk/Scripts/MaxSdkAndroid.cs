@@ -13,14 +13,27 @@ public class MaxSdkAndroid : MaxSdkBase
 
     private static BackgroundCallbackProxy BackgroundCallback = new BackgroundCallbackProxy();
 
+    public static MaxUserServiceAndroid UserService
+    {
+        get { return MaxUserServiceAndroid.Instance; }
+    }
+
     static MaxSdkAndroid()
     {
-        InitializeEventExecutor();
-
-        MaxUnityPluginClass.CallStatic("setBackgroundCallback", BackgroundCallback);
+        InitCallbacks();
     }
 
     #region Initialization
+
+    /// <summary>
+    /// Set AppLovin SDK Key.
+    ///
+    /// This method must be called before any other SDK operation
+    /// </summary>
+    public static void SetSdkKey(string sdkKey)
+    {
+        MaxUnityPluginClass.CallStatic("setSdkKey", sdkKey);
+    }
 
     /// <summary>
     /// Initialize the default instance of AppLovin SDK.
@@ -33,7 +46,7 @@ public class MaxSdkAndroid : MaxSdkBase
     public static void InitializeSdk(string[] adUnitIds = null)
     {
         var serializedAdUnitIds = (adUnitIds != null) ? string.Join(",", adUnitIds) : "";
-        MaxUnityPluginClass.CallStatic("initializeSdk", serializedAdUnitIds, GenerateMetaData());
+        MaxUnityPluginClass.CallStatic("initializeSdk", serializedAdUnitIds, GenerateMetaData(), BackgroundCallback);
     }
 
     /// <summary>
@@ -56,19 +69,26 @@ public class MaxSdkAndroid : MaxSdkBase
     /// For example, a username or email. We'll include this in the postback when we ping your currency endpoint from our server.
     /// </summary>
     /// 
-    /// <param name="userId">The user identifier to be set. Must not be null.</param>
+    /// <param name="userId">The user identifier to be set.</param>
     public static void SetUserId(string userId)
     {
         MaxUnityPluginClass.CallStatic("setUserId", userId);
     }
 
     /// <summary>
-    /// Set the <see cref="MaxSegmentCollection"/>.
+    /// User segments allow us to serve ads using custom-defined rules based on which segment the user is in. For now, we only support a custom string 32 alphanumeric characters or less as the user segment.
     /// </summary>
-    /// <param name="segmentCollection"> The segment collection to be set. Must not be {@code null}</param>
-    public static void SetSegmentCollection(MaxSegmentCollection segmentCollection)
+    public static MaxUserSegment UserSegment
     {
-        MaxUnityPluginClass.CallStatic("setSegmentCollection", JsonUtility.ToJson(segmentCollection));
+        get { return SharedUserSegment; }
+    }
+
+    /// <summary>
+    /// This class allows you to provide user or app data that will improve how we target ads.
+    /// </summary>
+    public static MaxTargetingData TargetingData
+    {
+        get { return SharedTargetingData; }
     }
 
     #endregion
@@ -111,8 +131,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Returns the arbitrary ad value for a given ad unit identifier with key. Returns null if no ad is loaded.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier for which to get the ad value for. Must not be null.</param>
-    /// <param name="key">Ad value key. Must not be null.</param>
+    /// <param name="adUnitIdentifier"></param>
+    /// <param name="key">Ad value key</param>
     /// <returns>Arbitrary ad value for a given key, or null if no ad is loaded.</returns>
     public static string GetAdValue(string adUnitIdentifier, string key)
     {
@@ -167,6 +187,33 @@ public class MaxSdkAndroid : MaxSdkBase
     }
 
     /// <summary>
+    /// Mark user as age restricted (i.e. under 16).
+    /// </summary>
+    /// <param name="isAgeRestrictedUser"><c>true</c> if the user is age restricted (i.e. under 16).</param>
+    public static void SetIsAgeRestrictedUser(bool isAgeRestrictedUser)
+    {
+        MaxUnityPluginClass.CallStatic("setIsAgeRestrictedUser", isAgeRestrictedUser);
+    }
+
+    /// <summary>
+    /// Check if user is age restricted.
+    /// </summary>
+    /// <returns><c>true</c> if the user is age-restricted. <c>false</c> if the user is not age-restricted or the age-restriction has not been set<see cref="IsAgeRestrictedUserSet">.</returns>
+    public static bool IsAgeRestrictedUser()
+    {
+        return MaxUnityPluginClass.CallStatic<bool>("isAgeRestrictedUser");
+    }
+
+    /// <summary>
+    /// Check if the user has set its age restricted settings. 
+    /// </summary>
+    /// <returns><c>true</c> if the user has set its age restricted settings.</returns>
+    public static bool IsAgeRestrictedUserSet()
+    {
+        return MaxUnityPluginClass.CallStatic<bool>("isAgeRestrictedUserSet");
+    }
+
+    /// <summary>
     /// Set whether or not user has opted out of the sale of their personal information.
     /// </summary>
     /// <param name="doNotSell"><c>true</c> if the user has opted out of the sale of their personal information.</param>
@@ -200,8 +247,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Create a new banner.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to create. Must not be null.</param>
-    /// <param name="bannerPosition">Banner position. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to create</param>
+    /// <param name="bannerPosition">Banner position</param>
     public static void CreateBanner(string adUnitIdentifier, BannerPosition bannerPosition)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "create banner");
@@ -211,7 +258,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Create a new banner with a custom position.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to create. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to create</param>
     /// <param name="x">The X coordinate (horizontal position) of the banner relative to the top left corner of the screen.</param>
     /// <param name="y">The Y coordinate (vertical position) of the banner relative to the top left corner of the screen.</param>
     /// <seealso cref="GetBannerLayout">
@@ -228,7 +275,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// NOTE: The <see cref="CreateBanner()"/> method loads the first banner ad and initiates an automated banner refresh process.
     /// You only need to call this method if you pause banner refresh.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to load</param>
     public static void LoadBanner(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "load banner");
@@ -238,7 +285,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set the banner placement for an ad unit identifier to tie the future ad events to.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to set the placement for. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to set the placement for</param>
     /// <param name="placement">Placement to set</param>
     public static void SetBannerPlacement(string adUnitIdentifier, string placement)
     {
@@ -249,7 +296,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Starts or resumes auto-refreshing of the banner for the given ad unit identifier.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner for which to start auto-refresh. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner for which to start auto-refresh</param>
     public static void StartBannerAutoRefresh(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "start banner auto-refresh");
@@ -259,7 +306,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Pauses auto-refreshing of the banner for the given ad unit identifier.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner for which to stop auto-refresh. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner for which to stop auto-refresh</param>
     public static void StopBannerAutoRefresh(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "stop banner auto-refresh");
@@ -269,8 +316,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Updates the position of the banner to the new position provided.
     /// </summary>
-    /// <param name="adUnitIdentifier">The ad unit identifier of the banner for which to update the position. Must not be null.</param>
-    /// <param name="bannerPosition">A new position for the banner. Must not be null.</param>
+    /// <param name="adUnitIdentifier">The ad unit identifier of the banner for which to update the position</param>
+    /// <param name="bannerPosition">A new position for the banner</param>
     public static void UpdateBannerPosition(string adUnitIdentifier, BannerPosition bannerPosition)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "update banner position");
@@ -280,7 +327,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Updates the position of the banner to the new coordinates provided.
     /// </summary>
-    /// <param name="adUnitIdentifier">The ad unit identifier of the banner for which to update the position. Must not be null.</param>
+    /// <param name="adUnitIdentifier">The ad unit identifier of the banner for which to update the position</param>
     /// <param name="x">The X coordinate (horizontal position) of the banner relative to the top left corner of the screen.</param>
     /// <param name="y">The Y coordinate (vertical position) of the banner relative to the top left corner of the screen.</param>
     /// <seealso cref="GetBannerLayout">
@@ -295,7 +342,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Overrides the width of the banner in dp.
     /// </summary>
-    /// <param name="adUnitIdentifier">The ad unit identifier of the banner for which to override the width for. Must not be null.</param>
+    /// <param name="adUnitIdentifier">The ad unit identifier of the banner for which to override the width for</param>
     /// <param name="width">The desired width of the banner in dp</param>
     public static void SetBannerWidth(string adUnitIdentifier, float width)
     {
@@ -306,7 +353,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Show banner at a position determined by the 'CreateBanner' call.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to show. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to show</param>
     public static void ShowBanner(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "show banner");
@@ -316,7 +363,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Remove banner from the ad view and destroy it.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to destroy. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to destroy</param>
     public static void DestroyBanner(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "destroy banner");
@@ -326,7 +373,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Hide banner.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to hide. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to hide</param>
+    /// <returns></returns>
     public static void HideBanner(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "hide banner");
@@ -336,8 +384,9 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set non-transparent background color for banners to be fully functional.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to set background color for. Must not be null.</param>
-    /// <param name="color">A background color to set for the ad. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to set background color for</param>
+    /// <param name="color">A background color to set for the ad</param>
+    /// <returns></returns>
     public static void SetBannerBackgroundColor(string adUnitIdentifier, Color color)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "set background color");
@@ -347,8 +396,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set an extra parameter for the banner ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to set the extra parameter for. Must not be null.</param>
-    /// <param name="key">The key for the extra parameter. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to set the extra parameter for.</param>
+    /// <param name="key">The key for the extra parameter.</param>
     /// <param name="value">The value for the extra parameter.</param>
     public static void SetBannerExtraParameter(string adUnitIdentifier, string key, string value)
     {
@@ -359,8 +408,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set a local extra parameter for the banner ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to set the local extra parameter for. Must not be null.</param>
-    /// <param name="key">The key for the local extra parameter. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner to set the local extra parameter for.</param>
+    /// <param name="key">The key for the local extra parameter.</param>
     /// <param name="value">The value for the extra parameter. Accepts the following types: <see cref="AndroidJavaObject"/>, <c>null</c>, <c>IList</c>, <c>IDictionary</c>, <c>string</c>, primitive types</param>
     public static void SetBannerLocalExtraParameter(string adUnitIdentifier, string key, object value)
     {
@@ -379,7 +428,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// The custom data to tie the showing banner ad to, for ILRD and rewarded postbacks via the <c>{CUSTOM_DATA}</c> macro. Maximum size is 8KB.
     /// </summary>
-    /// <param name="adUnitIdentifier">Banner ad unit identifier of the banner to set the custom data for. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Banner ad unit identifier of the banner to set the custom data for.</param>
     /// <param name="customData">The custom data to be set.</param>
     public static void SetBannerCustomData(string adUnitIdentifier, string customData)
     {
@@ -391,7 +440,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// The banner position on the screen. When setting the banner position via <see cref="CreateBanner(string, float, float)"/> or <see cref="UpdateBannerPosition(string, float, float)"/>,
     /// the banner is placed within the safe area of the screen. This returns the absolute position of the banner on screen.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the banner for which to get the position on screen. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the banner for which to get the position on screen.</param>
     /// <returns>A <see cref="Rect"/> representing the banner position on screen.</returns>
     public static Rect GetBannerLayout(string adUnitIdentifier)
     {
@@ -407,8 +456,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Create a new MREC.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to create. Must not be null.</param>
-    /// <param name="mrecPosition">MREC position. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to create</param>
+    /// <param name="mrecPosition">MREC position</param>
     public static void CreateMRec(string adUnitIdentifier, AdViewPosition mrecPosition)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "create MREC");
@@ -418,7 +467,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Create a new MREC with a custom position.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to create. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to create</param>
     /// <param name="x">The X coordinate (horizontal position) of the MREC relative to the top left corner of the screen.</param>
     /// <param name="y">The Y coordinate (vertical position) of the MREC relative to the top left corner of the screen.</param>
     /// <seealso cref="GetMRecLayout">
@@ -435,7 +484,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// NOTE: The <see cref="CreateMRec()"/> method loads the first MREC ad and initiates an automated MREC refresh process.
     /// You only need to call this method if you pause MREC refresh.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to load</param>
     public static void LoadMRec(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "load MREC");
@@ -445,7 +494,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set the MREC placement for an ad unit identifier to tie the future ad events to.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to set the placement for. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to set the placement for</param>
     /// <param name="placement">Placement to set</param>
     public static void SetMRecPlacement(string adUnitIdentifier, string placement)
     {
@@ -456,7 +505,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Starts or resumes auto-refreshing of the MREC for the given ad unit identifier.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC for which to start auto-refresh. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC for which to start auto-refresh</param>
     public static void StartMRecAutoRefresh(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "start MREC auto-refresh");
@@ -466,7 +515,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Pauses auto-refreshing of the MREC for the given ad unit identifier.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC for which to stop auto-refresh. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC for which to stop auto-refresh</param>
     public static void StopMRecAutoRefresh(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "stop MREC auto-refresh");
@@ -476,8 +525,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Updates the position of the MREC to the new position provided.
     /// </summary>
-    /// <param name="adUnitIdentifier">The ad unit identifier of the MREC for which to update the position. Must not be null.</param>
-    /// <param name="mrecPosition">A new position for the MREC. Must not be null.</param>
+    /// <param name="adUnitIdentifier">The ad unit identifier of the MREC for which to update the position</param>
+    /// <param name="mrecPosition">A new position for the MREC</param>
     public static void UpdateMRecPosition(string adUnitIdentifier, AdViewPosition mrecPosition)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "update MREC position");
@@ -487,7 +536,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Updates the position of the MREC to the new coordinates provided.
     /// </summary>
-    /// <param name="adUnitIdentifier">The ad unit identifier of the MREC for which to update the position. Must not be null.</param>
+    /// <param name="adUnitIdentifier">The ad unit identifier of the MREC for which to update the position</param>
     /// <param name="x">The X coordinate (horizontal position) of the MREC relative to the top left corner of the screen.</param>
     /// <param name="y">The Y coordinate (vertical position) of the MREC relative to the top left corner of the screen.</param>
     /// <seealso cref="GetMRecLayout">
@@ -502,7 +551,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Show MREC at a position determined by the 'CreateMRec' call.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to show. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to show</param>
     public static void ShowMRec(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "show MREC");
@@ -512,7 +561,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Remove MREC from the ad view and destroy it.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to destroy. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to destroy</param>
     public static void DestroyMRec(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "destroy MREC");
@@ -522,7 +571,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Hide MREC.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to hide. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to hide</param>
     public static void HideMRec(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "hide MREC");
@@ -532,8 +581,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set an extra parameter for the MREC ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to set the extra parameter for. Must not be null.</param>
-    /// <param name="key">The key for the extra parameter. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to set the extra parameter for.</param>
+    /// <param name="key">The key for the extra parameter.</param>
     /// <param name="value">The value for the extra parameter.</param>
     public static void SetMRecExtraParameter(string adUnitIdentifier, string key, string value)
     {
@@ -544,8 +593,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set a local extra parameter for the MREC ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to set the local extra parameter for. Must not be null.</param>
-    /// <param name="key">The key for the local extra parameter. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC to set the local extra parameter for.</param>
+    /// <param name="key">The key for the local extra parameter.</param>
     /// <param name="value">The value for the extra parameter. Accepts the following types: <see cref="AndroidJavaObject"/>, <c>null</c>, <c>IList</c>, <c>IDictionary</c>, <c>string</c>, primitive types</param>
     public static void SetMRecLocalExtraParameter(string adUnitIdentifier, string key, object value)
     {
@@ -564,7 +613,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// The custom data to tie the showing MREC ad to, for ILRD and rewarded postbacks via the <c>{CUSTOM_DATA}</c> macro. Maximum size is 8KB.
     /// </summary>
-    /// <param name="adUnitIdentifier">MREC Ad unit identifier of the banner to set the custom data for. Must not be null.</param>
+    /// <param name="adUnitIdentifier">MREC Ad unit identifier of the banner to set the custom data for.</param>
     /// <param name="customData">The custom data to be set.</param>
     public static void SetMRecCustomData(string adUnitIdentifier, string customData)
     {
@@ -576,7 +625,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// The MREC position on the screen. When setting the banner position via <see cref="CreateMRec(string, float, float)"/> or <see cref="UpdateMRecPosition(string, float, float)"/>,
     /// the banner is placed within the safe area of the screen. This returns the absolute position of the MREC on screen.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC for which to get the position on screen. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the MREC for which to get the position on screen.</param>
     /// <returns>A <see cref="Rect"/> representing the banner position on screen.</returns>
     public static Rect GetMRecLayout(string adUnitIdentifier)
     {
@@ -587,12 +636,106 @@ public class MaxSdkAndroid : MaxSdkBase
 
     #endregion
 
+    #region Cross Promo Ads
+
+    /// <summary>
+    /// Create a new cross promo ad with a custom position.
+    /// </summary>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the cross promo ad to create</param>
+    /// <param name="x">The X coordinate (horizontal position) of the cross promo ad relative to the top left corner of the screen.</param>
+    /// <param name="y">The Y coordinate (vertical position) of the cross promo ad relative to the top left corner of the screen.</param>
+    /// <param name="width">The width of the cross promo ad.</param>
+    /// <param name="height">The height of the cross promo ad.</param>
+    /// <param name="rotation">The rotation of the cross promo ad in degrees.</param>
+    /// <seealso cref="GetCrossPromoAdLayout">
+    /// The cross promo is placed within the safe area of the screen. You can use this to get the absolute position Rect of the cross promo ad on screen.
+    /// </seealso>
+    public static void CreateCrossPromoAd(string adUnitIdentifier, float x, float y, float width, float height, float rotation)
+    {
+        ValidateAdUnitIdentifier(adUnitIdentifier, "create cross promo ad");
+        MaxUnityPluginClass.CallStatic("createCrossPromoAd", adUnitIdentifier, x, y, width, height, rotation);
+    }
+
+    /// <summary>
+    /// Set the cross promo ad placement for an ad unit identifier to tie the future ad events to.
+    /// </summary>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the cross promo ad to set the placement for</param>
+    /// <param name="placement">Placement to set</param>
+    public static void SetCrossPromoAdPlacement(string adUnitIdentifier, string placement)
+    {
+        ValidateAdUnitIdentifier(adUnitIdentifier, "set cross promo ad placement");
+        MaxUnityPluginClass.CallStatic("setCrossPromoAdPlacement", adUnitIdentifier, placement);
+    }
+
+    /// <summary>
+    /// Updates the position of the cross promo ad to the new coordinates provided.
+    /// </summary>
+    /// <param name="adUnitIdentifier">The ad unit identifier of the cross promo ad for which to update the position</param>
+    /// <param name="x">The X coordinate (horizontal position) of the cross promo ad relative to the top left corner of the screen.</param>
+    /// <param name="y">The Y coordinate (vertical position) of the cross promo ad relative to the top left corner of the screen.</param>
+    /// <param name="width">The width of the cross promo ad.</param>
+    /// <param name="height">The height of the cross promo ad.</param>
+    /// <param name="rotation">The rotation of the cross promo ad in degrees.</param>
+    /// <seealso cref="GetCrossPromoAdLayout">
+    /// The cross promo ad is placed within the safe area of the screen. You can use this to get the absolute position Rect of the cross promo ad on screen.
+    /// </seealso>
+    public static void UpdateCrossPromoAdPosition(string adUnitIdentifier, float x, float y, float width, float height, float rotation)
+    {
+        ValidateAdUnitIdentifier(adUnitIdentifier, "update cross promo ad position");
+        MaxUnityPluginClass.CallStatic("updateCrossPromoAdPosition", adUnitIdentifier, x, y, width, height, rotation);
+    }
+
+    /// <summary>
+    /// Show cross promo ad at a position determined by the 'CreateCrossPromoAd' call.
+    /// </summary>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the cross promo ad to show</param>
+    public static void ShowCrossPromoAd(string adUnitIdentifier)
+    {
+        ValidateAdUnitIdentifier(adUnitIdentifier, "show cross promo ad");
+        MaxUnityPluginClass.CallStatic("showCrossPromoAd", adUnitIdentifier);
+    }
+
+    /// <summary>
+    /// Remove cross promo ad from the ad view and destroy it.
+    /// </summary>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the cross promo ad to destroy</param>
+    public static void DestroyCrossPromoAd(string adUnitIdentifier)
+    {
+        ValidateAdUnitIdentifier(adUnitIdentifier, "destroy cross promo ad");
+        MaxUnityPluginClass.CallStatic("destroyCrossPromoAd", adUnitIdentifier);
+    }
+
+    /// <summary>
+    /// Hide cross promo ad.
+    /// </summary>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the cross promo ad to hide</param>
+    public static void HideCrossPromoAd(string adUnitIdentifier)
+    {
+        ValidateAdUnitIdentifier(adUnitIdentifier, "hide cross promo ad");
+        MaxUnityPluginClass.CallStatic("hideCrossPromoAd", adUnitIdentifier);
+    }
+
+    /// <summary>
+    /// The cross promo ad position on the screen. When setting the cross promo ad position via <see cref="CreateCrossPromoAd(string, float, float, float, float, float)"/> or <see cref="UpdateCrossPromoAdPosition(string, float, float, float, float, float)"/>,
+    /// the cross promo ad is placed within the safe area of the screen. This returns the absolute position of the cross promo ad on screen.
+    /// </summary>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the cross promo ad for which to get the position on screen.</param>
+    /// <returns>A <see cref="Rect"/> representing the banner position on screen.</returns>
+    public static Rect GetCrossPromoAdLayout(string adUnitIdentifier)
+    {
+        ValidateAdUnitIdentifier(adUnitIdentifier, "get cross promo ad layout");
+        var positionRect = MaxUnityPluginClass.CallStatic<string>("getCrossPromoAdLayout", adUnitIdentifier);
+        return GetRectFromString(positionRect);
+    }
+
+    #endregion
+
     #region Interstitials
 
     /// <summary>
     /// Start loading an interstitial.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the interstitial to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the interstitial to load</param>
     public static void LoadInterstitial(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "load interstitial");
@@ -602,7 +745,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Check if interstitial ad is loaded and ready to be displayed.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the interstitial to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the interstitial to load</param>
     /// <returns>True if the ad is ready to be displayed</returns>
     public static bool IsInterstitialReady(string adUnitIdentifier)
     {
@@ -613,7 +756,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Present loaded interstitial for a given placement to tie ad events to. Note: if the interstitial is not ready to be displayed nothing will happen.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the interstitial to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the interstitial to load</param>
     /// <param name="placement">The placement to tie the showing ad's events to</param>
     /// <param name="customData">The custom data to tie the showing ad's events to. Maximum size is 8KB.</param>
     public static void ShowInterstitial(string adUnitIdentifier, string placement = null, string customData = null)
@@ -633,8 +776,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set an extra parameter for the ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the interstitial to set the extra parameter for. Must not be null.</param>
-    /// <param name="key">The key for the extra parameter. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the interstitial to set the extra parameter for.</param>
+    /// <param name="key">The key for the extra parameter.</param>
     /// <param name="value">The value for the extra parameter.</param>
     public static void SetInterstitialExtraParameter(string adUnitIdentifier, string key, string value)
     {
@@ -645,8 +788,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set a local extra parameter for the ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the interstitial to set the local extra parameter for. Must not be null.</param>
-    /// <param name="key">The key for the local extra parameter. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the interstitial to set the local extra parameter for.</param>
+    /// <param name="key">The key for the local extra parameter.</param>
     /// <param name="value">The value for the extra parameter. Accepts the following types: <see cref="AndroidJavaObject"/>, <c>null</c>, <c>IList</c>, <c>IDictionary</c>, <c>string</c>, primitive types</param>
     public static void SetInterstitialLocalExtraParameter(string adUnitIdentifier, string key, object value)
     {
@@ -669,7 +812,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Start loading an app open ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the app open ad to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the app open ad to load</param>
     public static void LoadAppOpenAd(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "load app open ad");
@@ -679,7 +822,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Check if app open ad ad is loaded and ready to be displayed.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the app open ad to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the app open ad to load</param>
     /// <returns>True if the ad is ready to be displayed</returns>
     public static bool IsAppOpenAdReady(string adUnitIdentifier)
     {
@@ -690,7 +833,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Present loaded app open ad for a given placement to tie ad events to. Note: if the app open ad is not ready to be displayed nothing will happen.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the app open ad to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the app open ad to load</param>
     /// <param name="placement">The placement to tie the showing ad's events to</param>
     /// <param name="customData">The custom data to tie the showing ad's events to. Maximum size is 8KB.</param>
     public static void ShowAppOpenAd(string adUnitIdentifier, string placement = null, string customData = null)
@@ -710,8 +853,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set an extra parameter for the ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the app open ad to set the extra parameter for. Must not be null.</param>
-    /// <param name="key">The key for the extra parameter. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the app open ad to set the extra parameter for.</param>
+    /// <param name="key">The key for the extra parameter.</param>
     /// <param name="value">The value for the extra parameter.</param>
     public static void SetAppOpenAdExtraParameter(string adUnitIdentifier, string key, string value)
     {
@@ -722,8 +865,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set a local extra parameter for the ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the app open ad to set the local extra parameter for. Must not be null.</param>
-    /// <param name="key">The key for the local extra parameter. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the app open ad to set the local extra parameter for.</param>
+    /// <param name="key">The key for the local extra parameter.</param>
     /// <param name="value">The value for the extra parameter. Accepts the following types: <see cref="AndroidJavaObject"/>, <c>null</c>, <c>IList</c>, <c>IDictionary</c>, <c>string</c>, primitive types</param>
     public static void SetAppOpenAdLocalExtraParameter(string adUnitIdentifier, string key, object value)
     {
@@ -746,7 +889,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Start loading an rewarded ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded ad to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded ad to load</param>
     public static void LoadRewardedAd(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "load rewarded ad");
@@ -756,7 +899,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Check if rewarded ad ad is loaded and ready to be displayed.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded ad to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded ad to load</param>
     /// <returns>True if the ad is ready to be displayed</returns>
     public static bool IsRewardedAdReady(string adUnitIdentifier)
     {
@@ -767,7 +910,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary> ready to be
     /// Present loaded rewarded ad for a given placement to tie ad events to. Note: if the rewarded ad is not ready to be displayed nothing will happen.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the interstitial to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the interstitial to load</param>
     /// <param name="placement">The placement to tie the showing ad's events to</param>
     /// <param name="customData">The custom data to tie the showing ad's events to. Maximum size is 8KB.</param>
     public static void ShowRewardedAd(string adUnitIdentifier, string placement = null, string customData = null)
@@ -787,8 +930,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set an extra parameter for the ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded to set the extra parameter for. Must not be null.</param>
-    /// <param name="key">The key for the extra parameter. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded to set the extra parameter for.</param>
+    /// <param name="key">The key for the extra parameter.</param>
     /// <param name="value">The value for the extra parameter.</param>
     public static void SetRewardedAdExtraParameter(string adUnitIdentifier, string key, string value)
     {
@@ -799,8 +942,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set a local extra parameter for the ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded to set the local extra parameter for. Must not be null.</param>
-    /// <param name="key">The key for the local extra parameter. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded to set the local extra parameter for.</param>
+    /// <param name="key">The key for the local extra parameter.</param>
     /// <param name="value">The value for the extra parameter. Accepts the following types: <see cref="AndroidJavaObject"/>, <c>null</c>, <c>IList</c>, <c>IDictionary</c>, <c>string</c>, primitive types</param>
     public static void SetRewardedAdLocalExtraParameter(string adUnitIdentifier, string key, object value)
     {
@@ -823,7 +966,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Start loading an rewarded interstitial ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded interstitial ad to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded interstitial ad to load</param>
     public static void LoadRewardedInterstitialAd(string adUnitIdentifier)
     {
         ValidateAdUnitIdentifier(adUnitIdentifier, "load rewarded interstitial ad");
@@ -833,7 +976,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Check if rewarded interstitial ad ad is loaded and ready to be displayed.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded interstitial ad to load. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded interstitial ad to load</param>
     /// <returns>True if the ad is ready to be displayed</returns>
     public static bool IsRewardedInterstitialAdReady(string adUnitIdentifier)
     {
@@ -844,7 +987,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Present loaded rewarded interstitial ad for a given placement to tie ad events to. Note: if the rewarded interstitial ad is not ready to be displayed nothing will happen.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded interstitial to show. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded interstitial to show</param>
     /// <param name="placement">The placement to tie the showing ad's events to</param>
     /// <param name="customData">The custom data to tie the showing ad's events to. Maximum size is 8KB.</param>
     public static void ShowRewardedInterstitialAd(string adUnitIdentifier, string placement = null, string customData = null)
@@ -864,8 +1007,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set an extra parameter for the ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded interstitial to set the extra parameter for. Must not be null.</param>
-    /// <param name="key">The key for the extra parameter. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded interstitial to set the extra parameter for.</param>
+    /// <param name="key">The key for the extra parameter.</param>
     /// <param name="value">The value for the extra parameter.</param>
     public static void SetRewardedInterstitialAdExtraParameter(string adUnitIdentifier, string key, string value)
     {
@@ -876,8 +1019,8 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Set a local extra parameter for the ad.
     /// </summary>
-    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded interstitial to set the local extra parameter for. Must not be null.</param>
-    /// <param name="key">The key for the local extra parameter. Must not be null.</param>
+    /// <param name="adUnitIdentifier">Ad unit identifier of the rewarded interstitial to set the local extra parameter for.</param>
+    /// <param name="key">The key for the local extra parameter.</param>
     /// <param name="value">The value for the extra parameter. Accepts the following types: <see cref="AndroidJavaObject"/>, <c>null</c>, <c>IList</c>, <c>IDictionary</c>, <c>string</c>, primitive types</param>
     public static void SetRewardedInterstitialAdLocalExtraParameter(string adUnitIdentifier, string key, object value)
     {
@@ -900,7 +1043,7 @@ public class MaxSdkAndroid : MaxSdkBase
     /// <summary>
     /// Track an event using AppLovin.
     /// </summary>
-    /// <param name="name">An event from the list of pre-defined events may be found in MaxEvents.cs as part of the AppLovin SDK framework. Must not be null.</param>
+    /// <param name="name">An event from the list of pre-defined events may be found in MaxEvents.cs as part of the AppLovin SDK framework.</param>
     /// <param name="parameters">A dictionary containing key-value pairs further describing this event.</param>
     public static void TrackEvent(string name, IDictionary<string, string> parameters = null)
     {
@@ -988,53 +1131,88 @@ public class MaxSdkAndroid : MaxSdkBase
     }
 
     /// <summary>
+    /// Whether or not AppLovin SDK will collect the device location if available. Defaults to <c>true</c>.
+    /// </summary>
+    /// <param name="enabled"><c>true</c> if AppLovin SDK should collect the device location if available.</param>
+    public static void SetLocationCollectionEnabled(bool enabled)
+    {
+        MaxUnityPluginClass.CallStatic("setLocationCollectionEnabled", enabled);
+    }
+
+    /// <summary>
     /// Set an extra parameter to pass to the AppLovin server.
     /// </summary>
     /// <param name="key">The key for the extra parameter. Must not be null.</param>
     /// <param name="value">The value for the extra parameter. May be null.</param>
     public static void SetExtraParameter(string key, string value)
     {
-        HandleExtraParameter(key, value);
-
         MaxUnityPluginClass.CallStatic("setExtraParameter", key, value);
     }
 
-    /// <summary>
-    /// Get the native insets in pixels for the safe area.
-    /// These insets are used to position ads within the safe area of the screen.
-    /// </summary>
-    public static SafeAreaInsets GetSafeAreaInsets()
+    #endregion
+
+    #region Private
+
+    internal static void SetUserSegmentField(string name, string value)
     {
-        // Use an int array instead of json serialization for performance
-        var insets = MaxUnityPluginClass.CallStatic<int[]>("getSafeAreaInsets");
+        MaxUnityPluginClass.CallStatic("setUserSegmentField", name, value);
+    }
 
-        // Convert from points to pixels
-        var screenDensity = MaxSdkUtils.GetScreenDensity();
-        for (var i = 0; i < insets.Length; i++)
-        {
-            insets[i] *= (int) screenDensity;
-        }
+    internal static void SetTargetingDataYearOfBirth(int yearOfBirth)
+    {
+        MaxUnityPluginClass.CallStatic("setTargetingDataYearOfBirth", yearOfBirth);
+    }
 
-        return new SafeAreaInsets(insets);
+    internal static void SetTargetingDataGender(String gender)
+    {
+        MaxUnityPluginClass.CallStatic("setTargetingDataGender", gender);
+    }
+
+    internal static void SetTargetingDataMaximumAdContentRating(int maximumAdContentRating)
+    {
+        MaxUnityPluginClass.CallStatic("setTargetingDataMaximumAdContentRating", maximumAdContentRating);
+    }
+
+    internal static void SetTargetingDataEmail(string email)
+    {
+        MaxUnityPluginClass.CallStatic("setTargetingDataEmail", email);
+    }
+
+    internal static void SetTargetingDataPhoneNumber(string phoneNumber)
+    {
+        MaxUnityPluginClass.CallStatic("setTargetingDataPhoneNumber", phoneNumber);
+    }
+
+    internal static void SetTargetingDataKeywords(string[] keywords)
+    {
+        // Wrap the string array in an object array, so the compiler does not split into multiple strings.
+        object[] arguments = {keywords};
+        MaxUnityPluginClass.CallStatic("setTargetingDataKeywords", arguments);
+    }
+
+    internal static void SetTargetingDataInterests(string[] interests)
+    {
+        // Wrap the string array in an object array, so the compiler does not split into multiple strings.
+        object[] arguments = {interests};
+        MaxUnityPluginClass.CallStatic("setTargetingDataInterests", arguments);
+    }
+
+    internal static void ClearAllTargetingData()
+    {
+        MaxUnityPluginClass.CallStatic("clearAllTargetingData");
     }
 
     #endregion
 
     #region Obsolete
 
-    [Obsolete("This API has been deprecated and will be removed in a future release. Please set your SDK key in the AppLovin Integration Manager.")]
-    public static void SetSdkKey(string sdkKey)
-    {
-        MaxUnityPluginClass.CallStatic("setSdkKey", sdkKey);
-        MaxSdkLogger.UserWarning("MaxSdk.SetSdkKey() has been deprecated and will be removed in a future release. Please set your SDK key in the AppLovin Integration Manager.");
-    }
-
     [Obsolete("This method has been deprecated. Please use `GetSdkConfiguration().ConsentDialogState`")]
     public static ConsentDialogState GetConsentDialogState()
     {
         if (!IsInitialized())
         {
-            MaxSdkLogger.UserWarning("MAX Ads SDK has not been initialized yet. GetConsentDialogState() may return ConsentDialogState.Unknown");
+            MaxSdkLogger.UserWarning(
+                "MAX Ads SDK has not been initialized yet. GetConsentDialogState() may return ConsentDialogState.Unknown");
         }
 
         return (ConsentDialogState) MaxUnityPluginClass.CallStatic<int>("getConsentDialogState");

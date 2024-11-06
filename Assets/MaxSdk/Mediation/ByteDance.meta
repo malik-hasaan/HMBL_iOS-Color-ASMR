@@ -1,5 +1,8 @@
 fileFormatVersion: 2
-guid: 82695635042c5489099cbfc7b67c8d34
+guid: f9709a145007d9644ae696ede3923ed3
+labels:
+- al_max
+- al_max_export_path-MaxSdk/Mediation/ByteDance
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

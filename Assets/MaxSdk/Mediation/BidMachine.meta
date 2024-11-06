@@ -1,5 +1,8 @@
 fileFormatVersion: 2
-guid: b93f139f4f58f433091747c31e23d157
+guid: 66df50d00bca3d0419b36c74134b7c15
+labels:
+- al_max
+- al_max_export_path-MaxSdk/Mediation/BidMachine
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

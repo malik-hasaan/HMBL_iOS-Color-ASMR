@@ -12,16 +12,13 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 
-namespace AppLovinMax.Scripts.IntegrationManager.Editor
+namespace AppLovinMax.Scripts.Editor
 {
     [InitializeOnLoad]
-    public class AppLovinInitialize
+    public class MaxInitialize
     {
         private static readonly List<string> ObsoleteNetworks = new List<string>
         {
-            "AdColony",
-            "Criteo",
-            "Nend",
             "Snap",
             "Tapjoy",
             "VerizonAds",
@@ -30,10 +27,6 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
 
         private static readonly List<string> ObsoleteFileExportPathsToDelete = new List<string>
         {
-            // The `MaxSdk/Scripts/Editor` folder contents have been moved into `MaxSdk/Scripts/IntegrationManager/Editor`.
-            "MaxSdk/Scripts/Editor",
-            "MaxSdk/Scripts/Editor.meta",
-
             // The `EventSystemChecker` has been renamed to `MaxEventSystemChecker`.
             "MaxSdk/Scripts/EventSystemChecker.cs",
             "MaxSdk/Scripts/EventSystemChecker.cs.meta",
@@ -61,23 +54,17 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
             "MaxSdk/Mediation/GoogleAdManager/Editor/MaxSdk.Mediation.GoogleAdManager.Editor.asmdef.meta",
             "Plugins/Android/MaxMediationGoogleAdManager.androidlib",
             "Plugins/Android/MaxMediationGoogleAdManager.androidlib.meta",
-
+                
             // The `VariableService` has been removed.
             "MaxSdk/Scripts/MaxVariableServiceAndroid.cs",
             "MaxSdk/Scripts/MaxVariableServiceAndroid.cs.meta",
             "MaxSdk/Scripts/MaxVariableServiceiOS.cs",
             "MaxSdk/Scripts/MaxVariableServiceiOS.cs.meta",
             "MaxSdk/Scripts/MaxVariableServiceUnityEditor.cs",
-            "MaxSdk/Scripts/MaxVariableServiceUnityEditor.cs.meta",
-
-            // The `MaxSdk/Scripts/Editor` folder contents have been moved into `MaxSdk/Scripts/IntegrationManager/Editor`.
-            "MaxSdk/Version.md",
-            "MaxSdk/Version.md.meta",
-
-            // TODO: Add MaxTargetingData and MaxUserSegment when the plugin has enough traction.
+            "MaxSdk/Scripts/MaxVariableServiceUnityEditor.cs.meta"
         };
 
-        static AppLovinInitialize()
+        static MaxInitialize()
         {
 #if UNITY_IOS
             // Check that the publisher is targeting iOS 9.0+
@@ -87,41 +74,51 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
             }
 #endif
 
-            var isPluginInPackageManager = AppLovinIntegrationManager.IsPluginInPackageManager;
-            if (!isPluginInPackageManager)
+            var pluginParentDir = AppLovinIntegrationManager.PluginParentDirectory;
+            var isPluginOutsideAssetsDir = AppLovinIntegrationManager.IsPluginOutsideAssetsDirectory;
+            var changesMade = AppLovinIntegrationManager.MovePluginFilesIfNeeded(pluginParentDir, isPluginOutsideAssetsDir);
+            if (isPluginOutsideAssetsDir)
             {
-                var changesMade = false;
-                foreach (var obsoleteFileExportPathToDelete in ObsoleteFileExportPathsToDelete)
+                // If the plugin is not under the assets folder, delete the MaxSdk/Mediation folder in the plugin, so that the adapters are not imported at that location and imported to the default location.
+                var mediationDir = Path.Combine(pluginParentDir, "MaxSdk/Mediation");
+                if (Directory.Exists(mediationDir))
                 {
-                    var pathToDelete = MaxSdkUtils.GetAssetPathForExportPath(obsoleteFileExportPathToDelete);
-                    if (CheckExistence(pathToDelete))
-                    {
-                        MaxSdkLogger.UserDebug("Deleting obsolete file '" + pathToDelete + "' that is no longer needed.");
-                        FileUtil.DeleteFileOrDirectory(pathToDelete);
-                        changesMade = true;
-                    }
+                    FileUtil.DeleteFileOrDirectory(mediationDir);
+                    FileUtil.DeleteFileOrDirectory(mediationDir + ".meta");
+                    changesMade = true;
                 }
+            }
 
-                var pluginParentDir = AppLovinIntegrationManager.PluginParentDirectory;
-                // Check if any obsolete networks are installed
-                foreach (var obsoleteNetwork in ObsoleteNetworks)
-                {
-                    var networkDir = Path.Combine(pluginParentDir, "MaxSdk/Mediation/" + obsoleteNetwork);
-                    if (CheckExistence(networkDir))
-                    {
-                        MaxSdkLogger.UserDebug("Deleting obsolete network " + obsoleteNetwork + " from path " + networkDir + "...");
-                        FileUtil.DeleteFileOrDirectory(networkDir);
-                        FileUtil.DeleteFileOrDirectory(networkDir + ".meta");
-                        changesMade = true;
-                    }
-                }
+            AppLovinIntegrationManager.AddLabelsToAssetsIfNeeded(pluginParentDir, isPluginOutsideAssetsDir);
 
-                // Refresh UI
-                if (changesMade)
+            foreach (var obsoleteFileExportPathToDelete in ObsoleteFileExportPathsToDelete)
+            {
+                var pathToDelete = MaxSdkUtils.GetAssetPathForExportPath(obsoleteFileExportPathToDelete);
+                if (CheckExistence(pathToDelete))
                 {
-                    AssetDatabase.Refresh();
-                    MaxSdkLogger.UserDebug("Obsolete networks and files removed.");
+                    MaxSdkLogger.UserDebug("Deleting obsolete file '" + pathToDelete + "' that are no longer needed.");
+                    FileUtil.DeleteFileOrDirectory(pathToDelete);
+                    changesMade = true;
                 }
+            }
+
+            // Check if any obsolete networks are installed
+            foreach (var obsoleteNetwork in ObsoleteNetworks)
+            {
+                var networkDir = Path.Combine(pluginParentDir, "MaxSdk/Mediation/" + obsoleteNetwork);
+                if (CheckExistence(networkDir))
+                {
+                    MaxSdkLogger.UserDebug("Deleting obsolete network " + obsoleteNetwork + " from path " + networkDir + "...");
+                    FileUtil.DeleteFileOrDirectory(networkDir);
+                    changesMade = true;
+                }
+            }
+
+            // Refresh UI
+            if (changesMade)
+            {
+                AssetDatabase.Refresh();
+                MaxSdkLogger.UserDebug("AppLovin MAX Migration completed");
             }
 
             AppLovinAutoUpdater.Update();

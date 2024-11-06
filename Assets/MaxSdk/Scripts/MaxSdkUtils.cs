@@ -350,21 +350,27 @@ public class MaxSdkUtils
     }
 
     /// <summary>
-    /// Parses the IABTCF_VendorConsents string to determine the consent status of the IAB vendor with the provided ID.
-    /// NOTE: Must be called after AppLovin MAX SDK has been initialized.
+    /// Parses the IAB TCF String to determine the consent status for the IAB vendor with the provided ID.
     /// </summary>
     /// <param name="vendorId">Vendor ID as defined in the Global Vendor List.</param>
-    /// <returns><c>true</c> if the vendor has consent, <c>false</c> if not, or <c>null</c> if TC data is not available on disk.</returns>
+    /// <returns>The consent status of the IAB vendor. Returns <c>true</c> if the vendor has consent, <c>false</c> if not, or <c>null</c> if no TCF string is available on disk.</returns>
     /// <see href="https://vendor-list.consensu.org/v3/vendor-list.json">Current Version of Global Vendor List</see>
     public static bool? GetTcfConsentStatus(int vendorId)
     {
         var tcfConsentStatus = GetPlatformSpecificTcfConsentStatus(vendorId);
-        return GetConsentStatusValue(tcfConsentStatus);
+        if (tcfConsentStatus == -1)
+        {
+            return null;
+        }
+        else
+        {
+            return tcfConsentStatus == 1;
+        }
     }
 
 #if UNITY_IOS
     [DllImport("__Internal")]
-    private static extern int _MaxGetTcfVendorConsentStatus(int vendorIdentifier);
+    private static extern int _MaxGetTcfConsentStatus(int vendorIdentifier);
 #endif
 
     private static int GetPlatformSpecificTcfConsentStatus(int vendorId)
@@ -372,28 +378,34 @@ public class MaxSdkUtils
 #if UNITY_EDITOR
         return -1;
 #elif UNITY_IOS
-        return _MaxGetTcfVendorConsentStatus(vendorId);
+        return _MaxGetTcfConsentStatus(vendorId);
 #elif UNITY_ANDROID
-        return MaxUnityPluginClass.CallStatic<int>("getTcfVendorConsentStatus", vendorId);
+        return MaxUnityPluginClass.CallStatic<int>("getTcfConsentStatus", vendorId);
 #else
         return -1;
 #endif
     }
 
     /// <summary>
-    /// Parses the IABTCF_AddtlConsent string to determine the consent status of the advertising entity with the provided Ad Technology Provider (ATP) ID.
-    /// NOTE: Must be called after AppLovin MAX SDK has been initialized.
+    /// Parses the Google UMP's Additional Consent (AC) string to determine the consent status for the advertising entity represented by the provided Ad Technology Provider (ATP) ID.
     /// </summary>
-    /// <param name="atpId">ATP ID of the advertising entity (e.g. 89 for Meta Audience Network).</param>
+    /// <param name="atpId">The ID representing the advertising entity (e.g. 89 for Meta Audience Network).</param>
     /// <returns>
-    /// <c>true</c> if the advertising entity has consent, <c>false</c> if not, or <c>null</c> if no AC string is available on disk or the ATP network was not listed in the CMP flow.
+    /// The consent status of the advertising entity. Returns <c>true</c> if the entity has consent, <c>false</c> if not, or <c>null</c> if no AC string is available on disk.
     /// </returns>
     /// <see href="https://support.google.com/admanager/answer/9681920">Google’s Additional Consent Mode technical specification</see>
     /// <see href="https://storage.googleapis.com/tcfac/additional-consent-providers.csv">List of Google ATPs and their IDs</see>
     public static bool? GetAdditionalConsentStatus(int atpId)
     {
         var additionalConsentStatus = GetPlatformSpecificAdditionalConsentStatus(atpId);
-        return GetConsentStatusValue(additionalConsentStatus);
+        if (additionalConsentStatus == -1)
+        {
+            return null;
+        }
+        else
+        {
+            return additionalConsentStatus == 1;
+        }
     }
 
 #if UNITY_IOS
@@ -415,77 +427,75 @@ public class MaxSdkUtils
     }
 
     /// <summary>
-    /// Parses the IABTCF_PurposeConsents String to determine the consent status of the IAB defined data processing purpose.
-    /// NOTE: Must be called after AppLovin MAX SDK has been initialized.
+    /// Compares AppLovin MAX Unity mediation adapter plugin versions. Returns <see cref="VersionComparisonResult.Lesser"/>, <see cref="VersionComparisonResult.Equal"/>,
+    /// or <see cref="VersionComparisonResult.Greater"/> as the first version is less than, equal to, or greater than the second.
+    ///
+    /// If a version for a specific platform is only present in one of the provided versions, the one that contains it is considered newer.
     /// </summary>
-    /// <param name="purposeId">Purpose ID.</param>
-    /// <returns><c>true</c> if the purpose has consent, <c>false</c> if not, or <c>null</c> if TC data is not available on disk.</returns>
-    /// <see href="https://storage.googleapis.com/tcfac/additional-consent-providers.csv">see IAB Europe Transparency and Consent Framework Policies (Appendix A) for purpose definitions.</see>
-    public static bool? GetPurposeConsentStatus(int purposeId)
+    /// <param name="versionA">The first version to be compared.</param>
+    /// <param name="versionB">The second version to be compared.</param>
+    /// <returns>
+    /// <see cref="VersionComparisonResult.Lesser"/> if versionA is less than versionB.
+    /// <see cref="VersionComparisonResult.Equal"/> if versionA and versionB are equal.
+    /// <see cref="VersionComparisonResult.Greater"/> if versionA is greater than versionB.
+    /// </returns>
+    public static VersionComparisonResult CompareUnityMediationVersions(string versionA, string versionB)
     {
-        var purposeConsentStatus = GetPlatformSpecificPurposeConsentStatus(purposeId);
-        return GetConsentStatusValue(purposeConsentStatus);
-    }
+        if (versionA.Equals(versionB)) return VersionComparisonResult.Equal;
 
-#if UNITY_IOS
-    [DllImport("__Internal")]
-    private static extern int _MaxGetPurposeConsentStatus(int purposeIdentifier);
-#endif
+        // Unity version would be of format:      android_w.x.y.z_ios_a.b.c.d
+        // For Android only versions it would be: android_w.x.y.z
+        // For iOS only version it would be:      ios_a.b.c.d
 
-    private static int GetPlatformSpecificPurposeConsentStatus(int purposeId)
-    {
-#if UNITY_EDITOR
-        return -1;
-#elif UNITY_IOS
-        return _MaxGetPurposeConsentStatus(purposeId);
-#elif UNITY_ANDROID
-        return MaxUnityPluginClass.CallStatic<int>("getPurposeConsentStatus", purposeId);
-#else
-        return -1;
-#endif
-    }
+        // After splitting into their respective components, the versions would be at the odd indices.
+        var versionAComponents = versionA.Split('_').ToList();
+        var versionBComponents = versionB.Split('_').ToList();
 
-    /// <summary>
-    /// Parses the IABTCF_SpecialFeaturesOptIns String to determine the opt-in status of the IAB defined special feature.
-    /// NOTE: Must be called after AppLovin MAX SDK has been initialized.
-    /// </summary>
-    /// <param name="specialFeatureId">Special feature ID.</param>
-    /// <returns><c>true</c> if the user opted in for the special feature, <c>false</c> if not, or <c>null</c> if TC data is not available on disk.</returns>
-    /// <see href="https://iabeurope.eu/iab-europe-transparency-consent-framework-policies">IAB Europe Transparency and Consent Framework Policies (Appendix A) for special features </see>
-    public static bool? GetSpecialFeatureOptInStatus(int specialFeatureId)
-    {
-        var specialFeatureOptInStatus = GetPlatformSpecificSpecialFeatureOptInStatus(specialFeatureId);
-        return GetConsentStatusValue(specialFeatureOptInStatus);
-    }
-
-#if UNITY_IOS
-    [DllImport("__Internal")]
-    private static extern int _MaxGetSpecialFeatureOptInStatus(int specialFeatureIdentifier);
-#endif
-
-    private static int GetPlatformSpecificSpecialFeatureOptInStatus(int specialFeatureId)
-    {
-#if UNITY_EDITOR
-        return -1;
-#elif UNITY_IOS
-        return _MaxGetSpecialFeatureOptInStatus(specialFeatureId);
-#elif UNITY_ANDROID
-        return MaxUnityPluginClass.CallStatic<int>("getSpecialFeatureOptInStatus", specialFeatureId);
-#else
-        return -1;
-#endif
-    }
-
-    private static bool? GetConsentStatusValue(int consentStatus)
-    {
-        if (consentStatus == -1)
+        var androidComparison = VersionComparisonResult.Equal;
+        if (versionA.Contains("android") && versionB.Contains("android"))
         {
-            return null;
+            var androidVersionA = versionAComponents[1];
+            var androidVersionB = versionBComponents[1];
+            androidComparison = CompareVersions(androidVersionA, androidVersionB);
+
+            // Remove the Android version component so that iOS versions can be processed.
+            versionAComponents.RemoveRange(0, 2);
+            versionBComponents.RemoveRange(0, 2);
         }
-        else
+        else if (versionA.Contains("android"))
         {
-            return consentStatus == 1;
+            androidComparison = VersionComparisonResult.Greater;
+
+            // Remove the Android version component so that iOS versions can be processed.
+            versionAComponents.RemoveRange(0, 2);
         }
+        else if (versionB.Contains("android"))
+        {
+            androidComparison = VersionComparisonResult.Lesser;
+
+            // Remove the Android version component so that iOS version can be processed.
+            versionBComponents.RemoveRange(0, 2);
+        }
+
+        var iosComparison = VersionComparisonResult.Equal;
+        if (versionA.Contains("ios") && versionB.Contains("ios"))
+        {
+            var iosVersionA = versionAComponents[1];
+            var iosVersionB = versionBComponents[1];
+            iosComparison = CompareVersions(iosVersionA, iosVersionB);
+        }
+        else if (versionA.Contains("ios"))
+        {
+            iosComparison = VersionComparisonResult.Greater;
+        }
+        else if (versionB.Contains("ios"))
+        {
+            iosComparison = VersionComparisonResult.Lesser;
+        }
+
+
+        // If either one of the Android or iOS version is greater, the entire version should be greater.
+        return (androidComparison == VersionComparisonResult.Greater || iosComparison == VersionComparisonResult.Greater) ? VersionComparisonResult.Greater : VersionComparisonResult.Lesser;
     }
 
     /// <summary>

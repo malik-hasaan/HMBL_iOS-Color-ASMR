@@ -10,6 +10,7 @@
 
 using System.IO;
 using UnityEditor.Android;
+using UnityEngine;
 
 namespace AppLovinMax.Scripts.IntegrationManager.Editor
 {
@@ -26,21 +27,15 @@ namespace AppLovinMax.Scripts.IntegrationManager.Editor
             // On Unity 2019.3+, the path returned is the path to the unityLibrary's module.
             // The AppLovin Quality Service buildscript closure related lines need to be added to the root build.gradle file.
             var rootGradleBuildFilePath = Path.Combine(path, "../build.gradle");
+#if UNITY_2022_2_OR_NEWER
+            if (!AddPluginToRootGradleBuildFile(rootGradleBuildFilePath)) return;
+            
             var rootSettingsGradleFilePath = Path.Combine(path, "../settings.gradle");
-
-            // For 2022.2 and newer and 2021.3.41+
-            var qualityServiceAdded = AddPluginToRootGradleBuildFile(rootGradleBuildFilePath);
-            var appLovinRepositoryAdded = AddAppLovinRepository(rootSettingsGradleFilePath);
-
-            // For 2021.3.40 and older and 2022.0 - 2022.1.x
+            if (!AddAppLovinRepository(rootSettingsGradleFilePath)) return;
+#else
             var buildScriptChangesAdded = AddQualityServiceBuildScriptLines(rootGradleBuildFilePath);
-
-            var failedToAddPlugin = !buildScriptChangesAdded && !(qualityServiceAdded && appLovinRepositoryAdded);
-            if (failedToAddPlugin)
-            {
-                MaxSdkLogger.UserWarning("Failed to add AppLovin Quality Service plugin to the gradle project.");
-                return;
-            }
+            if (!buildScriptChangesAdded) return;
+#endif
 
             // The plugin needs to be added to the application module (named launcher)
             var applicationGradleBuildFilePath = Path.Combine(path, "../launcher/build.gradle");
