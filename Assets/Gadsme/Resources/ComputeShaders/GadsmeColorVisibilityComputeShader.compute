@@ -1,0 +1,23 @@
+﻿#pragma kernel CheckVisibility
+
+Texture2D<float4> screen;
+int screenWidth;
+int screenHeight;
+
+int numberOfPoints;
+StructuredBuffer<float2> bufferInput;
+RWStructuredBuffer<float3> bufferOutput;
+
+[numthreads(1,1,1)]
+void CheckVisibility (uint3 id : SV_DispatchThreadID)
+{
+    for(int i = 0; i < numberOfPoints; i++) {
+        float2 position = bufferInput[i];
+        if (position.x > 0 && position.x < screenWidth && position.y > 0 && position.y < screenHeight) {
+            float4 color = screen[position];
+            bufferOutput[i] = color.rgb;
+        } else {
+            bufferOutput[i] = 1;
+        }
+    }
+}

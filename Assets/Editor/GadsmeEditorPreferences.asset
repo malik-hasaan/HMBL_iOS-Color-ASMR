@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1888551886, guid: 8b6805111e0e5449db491bf28f2479f3, type: 3}
+  m_Name: GadsmeEditorPreferences
+  m_EditorClassIdentifier: 
+  ApiKey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiZ2FtZSIsImF1ZCI6ImFwaS5nYWRzbWUuY29tIiwiaXNzIjoiYXBpLmdhZHNtZS5jb20iLCJzdWIiOiJjbTJ1ZGVveGYwMDBndTNoem1wMWpxcHdhIn0.y0rdeqDkev5s8ZpFLqDEyj66XNu9yR_7M3fqUY84dkw
+  Game:
+    id: cm2udeoxf000gu3hzmp1jqpwa
+    name: Color ASMR
+    account:
+      id: clyzxv9n0008811vs30i74riz
+      name: HMBL
+    placements: []
+  AdChannels: []
+  CheckApiKey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiZ2FtZSIsImF1ZCI6ImFwaS5nYWRzbWUuY29tIiwiaXNzIjoiYXBpLmdhZHNtZS5jb20iLCJzdWIiOiJjbTJ1ZGVveGYwMDBndTNoem1wMWpxcHdhIn0.y0rdeqDkev5s8ZpFLqDEyj66XNu9yR_7M3fqUY84dkw
+  SelectedAdFormatTab: 0
+  SnapTool: 1

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "191904446683",
+    "project_id": "color-page-asmr-cc4bd",
+    "storage_bucket": "color-page-asmr-cc4bd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:191904446683:android:a7645c024e49dd6ae1f4fe",
+        "android_client_info": {
+          "package_name": "com.sumraf.asmr.color.drawing"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4Jo9GoJJOV5CNDjmF-jMp02Y4B-f8_S0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
